@@ -8,6 +8,7 @@
 require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
+const path = require('path');
 
 // Initialize Express app
 const app = express();
@@ -18,8 +19,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // CORS
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [process.env.FRONTEND_URL].filter(Boolean)
+  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5000'];
+
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+  const origin = req.headers.origin;
+
+  if (process.env.NODE_ENV === 'production') {
+    // In production, allow same origin (served from Express) or configured frontend URL
+    if (!origin || origin === 'https://' + req.get('host') || allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin || '*');
+    }
+  } else {
+    // In development, allow common local origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin || '*');
+    }
+  }
+
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 
@@ -28,6 +46,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Serve static frontend files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist')));
+}
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -60,14 +83,30 @@ app.get('/api/info', (req, res) => {
   });
 });
 
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    path: req.path,
-    method: req.method
+// SPA fallback — must be after all API routes
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(__dirname, '../dist/index.html'));
+    } else {
+      // API route not found
+      res.status(404).json({
+        error: 'Not Found',
+        path: req.path,
+        method: req.method
+      });
+    }
   });
-});
+} else {
+  // 404 Handler (development)
+  app.use((req, res) => {
+    res.status(404).json({
+      error: 'Not Found',
+      path: req.path,
+      method: req.method
+    });
+  });
+}
 
 // Error Handler
 app.use((err, req, res, next) => {
