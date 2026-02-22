@@ -2,9 +2,6 @@
   "buildCommand": "npm run build:frontend",
   "installCommand": "npm install",
   "outputDirectory": "dist",
-  "env": {
-    "VITE_API_URL": "@vite-api-url"
-  },
   "rewrites": [
     {
       "source": "/(.*)",
