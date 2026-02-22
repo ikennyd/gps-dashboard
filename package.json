@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "validate": "node validate-setup.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev:backend": "node backend/server.js",
     "dev:frontend": "vite",
