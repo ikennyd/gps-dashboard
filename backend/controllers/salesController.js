@@ -48,13 +48,6 @@ const getSales = async (req, res) => {
       data: mockSales,
       count: mockSales.length
     });
-
-  } catch (error) {
-    console.error('Get sales error:', error);
-    res.status(500).json({
-      error: 'Failed to fetch sales',
-      message: error.message
-    });
   }
 };
 
