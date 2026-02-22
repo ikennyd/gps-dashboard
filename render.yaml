@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: gps-dashboard
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: node backend/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        value: https://mjtnfthhuamklgqoggzt.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: sb_publishable_absvsOU9FlWBaZYJrZNFvg_oS5L3bZj
+      - key: JWT_SECRET
+        value: your-secret-key-change-in-production-12345
+    healthCheckPath: /api/health
+    autoDeploy: true
